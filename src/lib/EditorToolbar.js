@@ -54,6 +54,7 @@ export default class EditorToolbar extends Component {
       showImageInput: false,
       customControlState: {},
     };
+    this.editorRootRef = React.createRef(); // Define o ref
   }
 
   // eslint-disable-next-line
@@ -68,43 +69,41 @@ export default class EditorToolbar extends Component {
   }
 
   render() {
-    let {className, toolbarConfig, rootStyle, isOnBottom} = this.props;
+    let { className, toolbarConfig, rootStyle, isOnBottom } = this.props;
     if (toolbarConfig == null) {
       toolbarConfig = DefaultToolbarConfig;
     }
     let display = toolbarConfig.display || DefaultToolbarConfig.display;
     let buttonGroups = display.map((groupName) => {
       switch (groupName) {
-        case 'INLINE_STYLE_BUTTONS': {
+        case 'INLINE_STYLE_BUTTONS':
           return this._renderInlineStyleButtons(groupName, toolbarConfig);
-        }
-        case 'BLOCK_ALIGNMENT_BUTTONS': {
+        case 'BLOCK_ALIGNMENT_BUTTONS':
           return this._renderBlockAlignmentButtons(groupName, toolbarConfig);
-        }
-        case 'BLOCK_TYPE_DROPDOWN': {
+        case 'BLOCK_TYPE_DROPDOWN':
           return this._renderBlockTypeDropdown(groupName, toolbarConfig);
-        }
-        case 'LINK_BUTTONS': {
+        case 'LINK_BUTTONS':
           return this._renderLinkButtons(groupName, toolbarConfig);
-        }
-        case 'IMAGE_BUTTON': {
+        case 'IMAGE_BUTTON':
           return this._renderImageButton(groupName, toolbarConfig);
-        }
-        case 'BLOCK_TYPE_BUTTONS': {
+        case 'BLOCK_TYPE_BUTTONS':
           return this._renderBlockTypeButtons(groupName, toolbarConfig);
-        }
-        case 'HISTORY_BUTTONS': {
+        case 'HISTORY_BUTTONS':
           return this._renderUndoRedo(groupName, toolbarConfig);
-        }
       }
     });
     return (
-      <div className={cx(styles.root, (isOnBottom && styles.onBottom), className)} style={rootStyle}>
+      <div
+        ref={this.editorRootRef} // Atribuindo o ref ao nó raiz
+        className={cx(styles.root, isOnBottom && styles.onBottom, className)}
+        style={rootStyle}
+      >
         {buttonGroups}
         {this._renderCustomControls()}
       </div>
     );
   }
+  
 
   _renderCustomControls() {
     let {customControls, editorState} = this.props;
@@ -322,15 +321,13 @@ export default class EditorToolbar extends Component {
 
   _toggleShowLinkInput(event: ?Object) {
     let isShowing = this.state.showLinkInput;
-    // If this is a hide request, decide if we should focus the editor.
     if (isShowing) {
       let shouldFocusEditor = true;
       if (event && event.type === 'click') {
-        // TODO: Use a better way to get the editor root node.
-        let editorRoot = ReactDOM.findDOMNode(this).parentNode;
-        let {activeElement} = document;
-        let wasClickAway = (activeElement == null || activeElement === document.body);
-        if (!wasClickAway && !editorRoot.contains(activeElement)) {
+        let editorRoot = this.editorRootRef.current; // Usando o ref
+        let { activeElement } = document;
+        let wasClickAway = !activeElement || activeElement === document.body;
+        if (!wasClickAway && editorRoot && !editorRoot.contains(activeElement)) {
           shouldFocusEditor = false;
         }
       }
@@ -338,20 +335,18 @@ export default class EditorToolbar extends Component {
         this.props.focusEditor();
       }
     }
-    this.setState({showLinkInput: !isShowing});
+    this.setState({ showLinkInput: !isShowing });
   }
 
   _toggleShowImageInput(event: ?Object) {
     let isShowing = this.state.showImageInput;
-    // If this is a hide request, decide if we should focus the editor.
     if (isShowing) {
       let shouldFocusEditor = true;
       if (event && event.type === 'click') {
-        // TODO: Use a better way to get the editor root node.
-        let editorRoot = ReactDOM.findDOMNode(this).parentNode;
-        let {activeElement} = document;
-        let wasClickAway = (activeElement == null || activeElement === document.body);
-        if (!wasClickAway && !editorRoot.contains(activeElement)) {
+        let editorRoot = this.editorRootRef.current; // Usando o ref
+        let { activeElement } = document;
+        let wasClickAway = !activeElement || activeElement === document.body;
+        if (!wasClickAway && editorRoot && !editorRoot.contains(activeElement)) {
           shouldFocusEditor = false;
         }
       }
@@ -359,7 +354,7 @@ export default class EditorToolbar extends Component {
         this.props.focusEditor();
       }
     }
-    this.setState({showImageInput: !isShowing});
+    this.setState({ showImageInput: !isShowing });
   }
 
   _setImage(src: string) {
